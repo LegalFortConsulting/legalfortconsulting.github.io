@@ -11,10 +11,9 @@
 }
 
 * { box-sizing: border-box; margin:0; padding:0; }
-
 body {
   font-family: Inter, system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
-  line-height: 1.6;
+  line-height:1.6;
   color: var(--text);
   background: var(--bg);
 }
@@ -40,7 +39,6 @@ header {
   justify-content: space-between;
 }
 
-/* Навигация */
 .nav { display:flex; align-items:center; justify-content:space-between; gap:18px; }
 .brand { display:flex; align-items:center; gap:12px; }
 
@@ -75,6 +73,7 @@ nav.menu a:hover { color: var(--accent); }
   flex-direction: column;
   gap:5px;
   cursor:pointer;
+  z-index:45;
 }
 
 .burger span {
@@ -89,16 +88,10 @@ nav.menu a:hover { color: var(--accent); }
 .burger.active span:nth-child(1) {
   transform: rotate(45deg) translate(5px,5px);
 }
+.burger.active span:nth-child(2) { opacity:0; }
+.burger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
 
-.burger.active span:nth-child(2) {
-  opacity:0;
-}
-
-.burger.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(5px,-5px);
-}
-
-/* Overlay для затемнения меню */
+/* Overlay для меню */
 .menu-overlay {
   position:fixed;
   top:0;
@@ -144,15 +137,9 @@ nav.menu a:hover { color: var(--accent); }
 }
 
 h1 { font-size:30px; margin:0 0 14px; }
-
 .lead { color:var(--muted); margin:0 0 22px; }
 
-.cta {
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-}
-
+.cta { display:flex; gap:14px; flex-wrap:wrap; }
 .btn {
   background:var(--accent);
   color:#fff;
@@ -163,9 +150,7 @@ h1 { font-size:30px; margin:0 0 14px; }
   font-weight:700;
   transition: background 0.3s;
 }
-
 .btn:hover { background:#2a5a42; }
-
 .btn.ghost {
   background:transparent;
   color:var(--accent);
@@ -190,7 +175,6 @@ h1 { font-size:30px; margin:0 0 14px; }
   flex-wrap:wrap;
   margin-top:26px;
 }
-
 .approach-card .approach-text { flex:1; min-width:200px; }
 .approach-card .approach-img { flex:0 0 200px; }
 .approach-card img { width:100%; border-radius:8px; display:block; }
@@ -207,7 +191,6 @@ h1 { font-size:30px; margin:0 0 14px; }
   gap:16px;
   margin-top:22px;
 }
-
 .service strong { display:block; margin-bottom:6px; }
 
 .cols { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
@@ -233,22 +216,12 @@ form button { width:100%; }
   overflow:hidden;
   margin-top:20px;
 }
-
 .carousel-track {
   display:flex;
   transition: transform 0.5s ease;
 }
-
-.carousel-item {
-  min-width:220px;
-  margin-right:14px;
-}
-
-.carousel-item img {
-  width:100%;
-  border-radius:8px;
-  display:block;
-}
+.carousel-item { min-width:220px; margin-right:14px; }
+.carousel-item img { width:100%; border-radius:8px; display:block; }
 
 .carousel-btn {
   position:absolute;
@@ -269,7 +242,6 @@ form button { width:100%; }
 
 .carousel-btn.prev { left:10px; }
 .carousel-btn.next { right:10px; }
-
 .carousel-btn:hover { background:rgba(0,0,0,0.7); }
 
 /* =========================
@@ -305,10 +277,9 @@ footer {
     gap:15px;
     box-shadow:-2px 0 8px rgba(0,0,0,0.2);
     transition:right 0.3s;
-    z-index:35;
+    z-index:45;
   }
   nav.menu.active { right:0; }
-
   .approach-card { flex-direction:column; }
   .approach-card img { width:100%; }
   .cta { flex-direction:column; }
@@ -316,10 +287,6 @@ footer {
 }
 
 @media(max-width:768px){
-  .cols {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .cols .card { flex: 1 1 100%; }
+  .cols { display:flex; flex-direction:column; gap:16px; }
+  .cols .card { flex:1 1 100%; }
 }
