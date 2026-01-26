@@ -32,8 +32,10 @@ section { padding:36px 0; border-top:1px solid rgba(0,0,0,0.03); }
 h1,h2,h3 { letter-spacing:-0.2px; }
 
 .hero { display:grid; grid-template-columns:1fr 380px; gap:32px; align-items:start; }
+.hero-left { display:flex; flex-direction:column; gap:24px; }
 .hero img { width:100%; border-radius:8px; display:block; }
-.badge { display:inline-block; background:#ede4da; color:var(--accent); padding:6px 12px; border-radius:999px; font-weight:700; margin-bottom:14px; }
+.badge { display:inline-block; background:#ede4da; color:var(--accent); padding:6px 12px; border-radius:999px; font-weight:700; }
+
 h1 { font-size:30px; margin:0 0 14px; }
 .lead { color:var(--muted); margin:0 0 22px; }
 
@@ -43,11 +45,17 @@ h1 { font-size:30px; margin:0 0 14px; }
 
 .card { background:var(--card); padding:20px; border-radius:14px; border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,0.04); }
 
+.hero-card { display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-top:26px; }
+.hero-card-text { flex:1; min-width:200px; }
+.hero-card-img { flex:0 0 200px; }
+
+.hero-aside { flex:0 0 300px; min-width:250px; display:flex; flex-direction:column; gap:8px; }
+
 .services { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:22px; }
 .service strong { display:block; margin-bottom:6px; }
 
 .cols { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:14px; }
 
 .phone { font-weight:800; color:var(--accent); }
 .lead-small { color:var(--muted); font-size:15px; }
@@ -58,12 +66,13 @@ form button { width:100%; }
 footer { padding:30px 0; color:var(--muted); font-size:14px; }
 .footer-cols { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 
-/* Адаптивность */
+/* Адаптив */
 @media(max-width:900px){
   .hero{grid-template-columns:1fr; gap:24px;}
-  .hero-aside{min-width:100%;}
+  .hero-aside{flex:1; min-width:100%;}
+  .hero-card{flex-direction:column;}
   .services{grid-template-columns:repeat(2,1fr);}
-  .grid-3{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr;}
   .burger{display:block;}
   nav.menu{display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.08); flex-direction:column; padding:12px; min-width:220px; z-index:100;}
   nav.menu.active{display:flex;}
