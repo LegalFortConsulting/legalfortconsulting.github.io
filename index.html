@@ -561,7 +561,7 @@
       <form id="contactForm">
         <input type="text" name="name" placeholder="Ваше имя" required>
         <input type="tel" name="phone" placeholder="Пример: +7 (999) 123‑45‑67" required>
-        <input type="text" name="city" placeholder="Город" required>
+        <input type="text" name="source" placeholder="Город" required>
         <textarea name="message" rows="4" placeholder="Кратко опишите вопрос"></textarea>
         <button type="submit" class="btn">Отправить заявку</button>
         <div id="form-status" style="margin-top:8px;color:green;"></div>
@@ -890,17 +890,14 @@ if (contactForm) {
         e.preventDefault();
         const status = document.getElementById("form-status");
         
-        // Собираем данные формы явно, чтобы убедиться, что все поля включены
-        const formData = new FormData(this);
-        
-        // Явно добавляем все поля для надежности
+        // Явно собираем все поля
         const name = this.querySelector('[name="name"]').value.trim();
         const phone = this.querySelector('[name="phone"]').value.trim();
-        const city = this.querySelector('[name="city"]').value.trim();
+        const source = this.querySelector('[name="source"]').value.trim();
         const message = this.querySelector('[name="message"]').value.trim();
         
         // Проверяем, что все обязательные поля заполнены
-        if (!name || !phone || !city) {
+        if (!name || !phone || !source) {
             if (status) {
                 status.innerText = "Пожалуйста, заполните все обязательные поля.";
                 status.style.color = "red";
@@ -908,25 +905,42 @@ if (contactForm) {
             return;
         }
         
-        // Создаем новый FormData с явно указанными полями
-        const dataToSend = new FormData();
-        dataToSend.append('name', name);
-        dataToSend.append('phone', phone);
-        dataToSend.append('city', city);
-        dataToSend.append('message', message);
-        
         // Показываем индикатор загрузки
         if (status) {
             status.innerText = "Отправка...";
             status.style.color = "var(--muted)";
         }
 
+        // Создаем FormData с явно указанными полями
+        // Важно: используем 'source' вместо 'city', так как Google Apps Script ожидает именно 'source'
+        const formDataToSend = new FormData();
+        formDataToSend.append('name', name);
+        formDataToSend.append('phone', phone);
+        formDataToSend.append('source', source);
+        formDataToSend.append('message', message || '');
+        
+        // Логирование для отладки (можно убрать после проверки)
+        console.log('Отправка данных:', {
+            name: name,
+            phone: phone,
+            source: source,
+            message: message
+        });
+        
+        // Проверяем, что source действительно добавлен
+        console.log('FormData содержит source:', formDataToSend.has('source'));
+        console.log('Значение source в FormData:', formDataToSend.get('source'));
+
         fetch("https://script.google.com/macros/s/AKfycbz0YibnEhifXUu0_FeTF_6va0ve2RtwO2QAMsE5rrPQ7JkbAH3CYg675Ht8wEikZj--Eg/exec", {
             method: "POST",
-            body: dataToSend
+            body: formDataToSend
         })
         .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
+            console.log('Response status:', response.status);
+            return response.text();
+        })
+        .then(text => {
+            console.log('Response text:', text);
             if (status) {
                 status.innerText = "Заявка успешно отправлена!";
                 status.style.color = "green";
