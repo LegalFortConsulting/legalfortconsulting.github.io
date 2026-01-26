@@ -124,7 +124,10 @@
 
     .carousel-item img {
       width: 100%;
+      max-width: 100%;
       height: auto;
+      max-height: 500px;
+      object-fit: contain;
       display: block;
       border-radius: 8px;
     }
@@ -185,6 +188,15 @@
     @media (max-width: 900px) {
       .carousel-nav {
         display: none;
+      }
+      .carousel-item img {
+        max-height: 400px;
+      }
+    }
+    
+    @media (max-width: 520px) {
+      .carousel-item img {
+        max-height: 300px;
       }
     }
 
@@ -533,7 +545,31 @@ if (contactForm) {
     contactForm.addEventListener("submit", function(e) {
         e.preventDefault();
         const status = document.getElementById("form-status");
+        
+        // Собираем данные формы явно, чтобы убедиться, что все поля включены
         const formData = new FormData(this);
+        
+        // Явно добавляем все поля для надежности
+        const name = this.querySelector('[name="name"]').value.trim();
+        const phone = this.querySelector('[name="phone"]').value.trim();
+        const city = this.querySelector('[name="city"]').value.trim();
+        const message = this.querySelector('[name="message"]').value.trim();
+        
+        // Проверяем, что все обязательные поля заполнены
+        if (!name || !phone || !city) {
+            if (status) {
+                status.innerText = "Пожалуйста, заполните все обязательные поля.";
+                status.style.color = "red";
+            }
+            return;
+        }
+        
+        // Создаем новый FormData с явно указанными полями
+        const dataToSend = new FormData();
+        dataToSend.append('name', name);
+        dataToSend.append('phone', phone);
+        dataToSend.append('city', city);
+        dataToSend.append('message', message);
         
         // Показываем индикатор загрузки
         if (status) {
@@ -543,7 +579,7 @@ if (contactForm) {
 
         fetch("https://script.google.com/macros/s/AKfycbz0YibnEhifXUu0_FeTF_6va0ve2RtwO2QAMsE5rrPQ7JkbAH3CYg675Ht8wEikZj--Eg/exec", {
             method: "POST",
-            body: formData
+            body: dataToSend
         })
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
