@@ -113,12 +113,13 @@
 
     .carousel-track {
       display: flex;
+      gap: 18px;
       transition: transform 0.5s ease-in-out;
       will-change: transform;
     }
 
     .carousel-item {
-      min-width: 100%;
+      min-width: calc(33.333% - 12px);
       flex-shrink: 0;
     }
 
@@ -189,12 +190,18 @@
       .carousel-nav {
         display: none;
       }
+      .carousel-item {
+        min-width: calc(50% - 9px);
+      }
       .carousel-item img {
         max-height: 400px;
       }
     }
     
     @media (max-width: 520px) {
+      .carousel-item {
+        min-width: 100%;
+      }
       .carousel-item img {
         max-height: 300px;
       }
@@ -390,6 +397,48 @@
           <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
         </div>
       </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom4.jpg" alt="Диплом 4">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom5.jpg" alt="Диплом 5">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom6.jpg" alt="Диплом 6">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom7.jpg" alt="Диплом 7">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom8.jpg" alt="Диплом 8">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom9.jpg" alt="Диплом 9">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="card">
+          <img src="assets/diplom10.jpg" alt="Диплом 10">
+          <p class="lead-small" style="margin-top: 12px;">Диплом / сертификат</p>
+        </div>
+      </div>
     </div>
     <button class="carousel-nav prev" id="carouselPrev" aria-label="Предыдущий">‹</button>
     <button class="carousel-nav next" id="carouselNext" aria-label="Следующий">›</button>
@@ -489,17 +538,39 @@ document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
     const totalItems = items.length;
     let currentIndex = 0;
     
+    // Определяем количество видимых элементов в зависимости от ширины экрана
+    function getVisibleCount() {
+        if (window.innerWidth <= 520) return 1;
+        if (window.innerWidth <= 900) return 2;
+        return 3;
+    }
+    
+    // Вычисляем количество слайдов (групп)
+    function getTotalSlides() {
+        const visible = getVisibleCount();
+        return Math.ceil(totalItems / visible);
+    }
+    
     // Создание точек навигации
-    for (let i = 0; i < totalItems; i++) {
-        const dot = document.createElement('button');
-        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', 'Перейти к слайду ' + (i + 1));
-        dot.addEventListener('click', () => goToSlide(i));
-        dotsContainer.appendChild(dot);
+    function createDots() {
+        dotsContainer.innerHTML = '';
+        const totalSlides = getTotalSlides();
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', 'Перейти к слайду ' + (i + 1));
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        }
     }
     
     function updateCarousel() {
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        const visible = getVisibleCount();
+        const containerWidth = track.parentElement.offsetWidth;
+        const gap = 18;
+        const itemWidth = (containerWidth - (gap * (visible - 1))) / visible;
+        const translateX = currentIndex * visible * (itemWidth + gap);
+        track.style.transform = `translateX(-${translateX}px)`;
         
         // Обновление точек
         const dots = dotsContainer.querySelectorAll('.carousel-dot');
@@ -509,19 +580,37 @@ document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
     }
     
     function goToSlide(index) {
-        currentIndex = index;
+        const totalSlides = getTotalSlides();
+        currentIndex = Math.max(0, Math.min(index, totalSlides - 1));
         updateCarousel();
     }
     
     function nextSlide() {
-        currentIndex = (currentIndex + 1) % totalItems;
+        const totalSlides = getTotalSlides();
+        currentIndex = (currentIndex + 1) % totalSlides;
         updateCarousel();
     }
     
     function prevSlide() {
-        currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+        const totalSlides = getTotalSlides();
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
         updateCarousel();
     }
+    
+    // Инициализация
+    createDots();
+    updateCarousel();
+    
+    // Обработка изменения размера окна
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            createDots();
+            currentIndex = 0;
+            updateCarousel();
+        }, 250);
+    });
     
     prevBtn.addEventListener('click', prevSlide);
     nextBtn.addEventListener('click', nextSlide);
