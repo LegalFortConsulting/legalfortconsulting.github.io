@@ -42,3 +42,37 @@ document.getElementById("contactForm").addEventListener("submit", function(e) {
     .catch(() => { status.style.color = 'red'; status.innerText = "Ошибка отправки, попробуйте позже."; })
     .finally(() => btn.disabled = false);
 });
+const track = document.querySelector('.carousel-track');
+const cards = Array.from(track.children);
+const prevBtn = document.querySelector('.carousel-btn.prev');
+const nextBtn = document.querySelector('.carousel-btn.next');
+
+let index = 0;
+let cardWidth = cards[0].getBoundingClientRect().width + 18;
+
+function updateCarousel() {
+    track.style.transform = `translateX(-${index * cardWidth}px)`;
+}
+
+// Кнопки вручную
+prevBtn.addEventListener('click', () => {
+    index = (index > 0) ? index - 1 : cards.length - 1;
+    updateCarousel();
+});
+
+nextBtn.addEventListener('click', () => {
+    index = (index < cards.length - 1) ? index + 1 : 0;
+    updateCarousel();
+});
+
+// Автопрокрутка
+setInterval(() => {
+    index = (index < cards.length - 1) ? index + 1 : 0;
+    updateCarousel();
+}, 3000); // каждые 3 секунды
+
+// Обновляем ширину карточки при ресайзе
+window.addEventListener('resize', () => {
+    cardWidth = cards[0].getBoundingClientRect().width + 18;
+    updateCarousel();
+});
