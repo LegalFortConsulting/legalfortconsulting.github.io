@@ -1039,79 +1039,121 @@ const consentModal = document.getElementById('consentModal');
 const consentCheckbox = document.getElementById('consentCheckbox');
 const consentAccept = document.getElementById('consentAccept');
 const consentCancel = document.getElementById('consentCancel');
-const contactForm = document.getElementById("contactForm");
-const formStatus = document.getElementById("form-status");
-const API_URL = "https://script.google.com/macros/s/AKfycbyj3P_5iAh9AuI_R5mSPs7JAnKD0XIED-SMnB7lidF9Csfx8X4uhR9p4wBld_j0Uw3cpw/exec";
+const contactForm = document.getElementById('contactForm');
+const formStatus = document.getElementById('form-status');
 
-let formDataToSubmit = null, formElement = null;
+const API_URL = 'https://script.google.com/macros/s/AKfycbz0YibnEhifXUu0_FeTF_6va0ve2RtwO2QAMsE5rrPQ7JkbAH3CYg675Ht8wEikZj--Eg/exec';
 
-if (consentModal && consentCheckbox && consentAccept && consentCancel && contactForm) {
-    const closeConsentModal = () => {
-        consentModal.classList.remove('active');
-        consentCheckbox.checked = false;
-        formDataToSubmit = null;
-        formElement = null;
-    };
-    const openConsentModal = (data, form) => {
-        formDataToSubmit = data;
-        formElement = form;
-        consentModal.classList.add('active');
-        consentCheckbox.checked = false;
-    };
-    consentCancel.addEventListener('click', closeConsentModal);
-    consentModal.addEventListener('click', (e) => e.target === consentModal && closeConsentModal());
-    
-    contactForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        const name = this.querySelector('[name="name"]').value.trim();
-        const phone = this.querySelector('[name="phone"]').value.trim();
-        const source = this.querySelector('[name="source"]').value.trim();
-        const message = this.querySelector('[name="message"]').value.trim();
-        if (!name || !phone || !source) {
-            if (formStatus) {
-                formStatus.innerText = "Пожалуйста, заполните все обязательные поля.";
-                formStatus.style.color = "red";
-            }
-            return;
-        }
-        const formDataToSend = new FormData();
-        formDataToSend.append('name', name);
-        formDataToSend.append('phone', phone);
-        formDataToSend.append('source', source);
-        formDataToSend.append('message', message || '');
-        openConsentModal(formDataToSend, this);
-    });
-    
-    consentAccept.addEventListener('click', function() {
-        if (!consentCheckbox.checked) {
-            alert('Пожалуйста, подтвердите согласие на обработку персональных данных');
-            return;
-        }
-        if (!formDataToSubmit || !formElement) {
-            closeConsentModal();
-            return;
-        }
+let formDataToSubmit = null;
+let formElement = null;
+
+if (
+  consentModal &&
+  consentCheckbox &&
+  consentAccept &&
+  consentCancel &&
+  contactForm
+) {
+
+  /* ======================
+     Модальное окно
+  ====================== */
+
+  const closeConsentModal = () => {
+    consentModal.classList.remove('active');
+    consentCheckbox.checked = false;
+    formDataToSubmit = null;
+    formElement = null;
+  };
+
+  const openConsentModal = (data, form) => {
+    formDataToSubmit = data;
+    formElement = form;
+    consentCheckbox.checked = false;
+    consentModal.classList.add('active');
+  };
+
+  consentCancel.addEventListener('click', closeConsentModal);
+
+  consentModal.addEventListener('click', (e) => {
+    if (e.target === consentModal) closeConsentModal();
+  });
+
+  /* ======================
+     Отправка формы
+  ====================== */
+
+  contactForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = this.querySelector('[name="name"]')?.value.trim();
+    const phone = this.querySelector('[name="phone"]')?.value.trim();
+    const source = this.querySelector('[name="source"]')?.value.trim();
+    const message = this.querySelector('[name="message"]')?.value.trim();
+
+    if (!name || !phone || !source) {
+      if (formStatus) {
+        formStatus.innerText = 'Пожалуйста, заполните все обязательные поля.';
+        formStatus.style.color = 'red';
+      }
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('phone', phone);
+    formData.append('source', source);
+    formData.append('message', message || '');
+
+    openConsentModal(formData, this);
+  });
+
+  /* ======================
+     Подтверждение согласия
+  ====================== */
+
+  consentAccept.addEventListener('click', function () {
+    if (!consentCheckbox.checked) {
+      alert('Пожалуйста, подтвердите согласие на обработку персональных данных');
+      return;
+    }
+
+    if (!formDataToSubmit || !formElement) {
+      closeConsentModal();
+      return;
+    }
+
+    if (formStatus) {
+      formStatus.innerText = 'Отправка...';
+      formStatus.style.color = 'var(--muted)';
+    }
+
+    consentAccept.disabled = true;
+    closeConsentModal();
+
+    fetch(API_URL, {
+      method: 'POST',
+      body: formDataToSubmit,
+      mode: 'no-cors'
+    })
+      .then(() => {
         if (formStatus) {
-            formStatus.innerText = "Отправка...";
-            formStatus.style.color = "var(--muted)";
+          formStatus.innerText = 'Заявка успешно отправлена!';
+          formStatus.style.color = 'green';
         }
-        closeConsentModal();
-        fetch(API_URL, { method: "POST", body: formDataToSubmit })
-        .then(response => response.text())
-        .then(() => {
-            if (formStatus) {
-                formStatus.innerText = "Заявка успешно отправлена!";
-                formStatus.style.color = "green";
-            }
-            formElement.reset();
-        })
-        .catch(() => {
-            if (formStatus) {
-                formStatus.innerText = "Ошибка отправки, попробуйте позже.";
-                formStatus.style.color = "red";
-            }
-        });
-    });
+        formElement.reset();
+      })
+      .catch(() => {
+        if (formStatus) {
+          formStatus.innerText = 'Ошибка отправки, попробуйте позже.';
+          formStatus.style.color = 'red';
+        }
+      })
+      .finally(() => {
+        consentAccept.disabled = false;
+      });
+  });
+
 }
 
 // ===== Обработка ошибок загрузки изображений =====
