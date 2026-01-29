@@ -13,6 +13,55 @@
 
   <style>
     /* =========================
+   Отзывы
+========================= */
+
+.reviews {
+  padding: 60px 0;
+}
+
+.reviews-title {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 40px;
+  color: var(--accent);
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.review-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.review-text {
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.review-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-name {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.review-rating {
+  color: #c2a14d;
+  font-size: 18px;
+}
+
+    /* =========================
        Цвета и базовые стили
     ========================== */
    /* Для плавного скроллинга при нажатиии на кнопки с якорем href*/
@@ -537,37 +586,49 @@
   </aside>
 </section>
   
-<!-- Отзывы клиентов -->
-<section id="reviews">
-  <h2>Отзывы клиентов</h2>
+<section id="reviews" class="reviews">
+  <div class="container">
+    <h2 class="reviews-title">Отзывы клиентов</h2>
 
-  <article class="review">
-    <p>
-      Обратился за консультацией по военному праву. Юрист подробно разобрал
-      ситуацию, объяснил порядок действий и возможные риски.
-      Первичная консультация была бесплатной.
-    </p>
-    <p><strong>Алексей</strong>, Москва</p>
-  </article>
+    <div class="reviews-grid">
 
-  <article class="review">
-    <p>
-      Помогли разобраться с выплатами по контракту.
-      Получил чёткие рекомендации и список документов.
-      Общение корректное и по делу.
-    </p>
-    <p><strong>Сергей</strong>, Московская область</p>
-  </article>
+      <article class="review-card">
+        <p class="review-text">
+          Обратился за консультацией по военному праву. Первичную консультацию
+          провели бесплатно, всё объяснили чётко и по делу. Благодарю за помощь.
+        </p>
+        <div class="review-footer">
+          <span class="review-name">Алексей М.</span>
+          <span class="review-rating">★★★★★</span>
+        </div>
+      </article>
 
-  <article class="review">
-    <p>
-      Обращался по вопросу увольнения с военной службы.
-      Консультация бесплатная, без навязывания услуг.
-      Рекомендую.
-    </p>
-    <p><strong>Илья</strong>, Москва</p>
-  </article>
+      <article class="review-card">
+        <p class="review-text">
+          Профессиональный подход и внимательное отношение. Помогли разобраться
+          с договором и дальнейшими действиями. Рекомендую.
+        </p>
+        <div class="review-footer">
+          <span class="review-name">Ирина К.</span>
+          <span class="review-rating">★★★★★</span>
+        </div>
+      </article>
+
+      <article class="review-card">
+        <p class="review-text">
+          Получил подробную консультацию, без навязывания лишних услуг.
+          Видно, что работают на результат.
+        </p>
+        <div class="review-footer">
+          <span class="review-name">Сергей В.</span>
+          <span class="review-rating">★★★★☆</span>
+        </div>
+      </article>
+
+    </div>
+  </div>
 </section>
+
 
 <!-- =========================
      Услуги
@@ -1208,16 +1269,15 @@ const initImageHandlers = () => {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initImageHandlers);
 else initImageHandlers();
 </script>
-  <script type="application/ld+json">
+ <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "LegalService",
   "name": "LegalFortConsulting",
   "url": "https://legalfortconsulting.github.io/",
-  "areaServed": "RU",
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": "4.9",
+    "ratingValue": "4.8",
     "reviewCount": "3"
   }
 }
