@@ -1137,6 +1137,7 @@ if (burger && menu && overlay) {
     });
 })();
 // ---------------- Форма отправки и согласие ----------------
+// ===== JS для формы и модалки согласия =====
 const consentModal = document.getElementById('consentModal');
 const consentCheckbox = document.getElementById('consentCheckbox');
 const consentAccept = document.getElementById('consentAccept');
@@ -1144,12 +1145,12 @@ const consentCancel = document.getElementById('consentCancel');
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('form-status');
 
-const API_URL = 'https://script.google.com/macros/s/ВАШ_URL/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxYDM-EPa7pT3Vf2uCQDvKgfL2BSQBOu4b3OW8oNJxm_CESK-LemazzIXq0EfqHyL5rFw/exec';
 let formPayload = null;
 
 // ---------------- Модалка ----------------
 const closeConsentModal = () => {
-  consentModal.classList.remove('active');
+  consentModal.style.display = 'none';
   consentCheckbox.checked = false;
   formPayload = null;
 };
@@ -1157,7 +1158,7 @@ const closeConsentModal = () => {
 const openConsentModal = (payload) => {
   formPayload = payload;
   consentCheckbox.checked = false;
-  consentModal.classList.add('active');
+  consentModal.style.display = 'flex';
 };
 
 consentCancel.addEventListener('click', closeConsentModal);
@@ -1181,22 +1182,19 @@ contactForm.addEventListener('submit', function(e) {
   }
 
   // Подготовка данных для Google Apps Script
-  const params = new URLSearchParams({
-    name, phone, source, message: message || ''
-  });
-
+  const params = new URLSearchParams({ name, phone, source, message: message || '' });
   openConsentModal(params);
 });
 
 // ---------------- Подтверждение согласия ----------------
 consentAccept.addEventListener('click', function() {
   if(!formPayload){
-    alert('Сначала заполните форму.');
+    alert('Сначала заполните форму и откройте модалку согласия.');
     return;
   }
 
   if(!consentCheckbox.checked){
-    alert('Пожалуйста, подтвердите согласие на обработку персональных данных');
+    alert('Подтвердите согласие на обработку персональных данных');
     return;
   }
 
@@ -1225,6 +1223,7 @@ consentAccept.addEventListener('click', function() {
   })
   .finally(() => consentAccept.disabled = false);
 });
+
 
 
 
