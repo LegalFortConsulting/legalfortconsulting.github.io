@@ -263,14 +263,14 @@
 
     /* ---- медиазапросы для карусели ---- */
     @media (max-width:900px) {
-      .carousel-nav { display:none; }               /* стрелки только на десктопе */
+      .carousel-nav { display:none; }
       .carousel-item img { max-height:400px; }
     }
     @media (max-width:520px) {
-      .carousel-item { min-width:100%; }            /* один элемент = вся ширина */
+      .carousel-item { min-width:100%; }
       .carousel-item img { max-height:300px; }
       .carousel-controls { display:none; }
-      .carousel-track { gap:0; }                    /* убираем промежуток */
+      .carousel-track { gap:0; }
     }
 
     /* -------------------------------------------------
@@ -315,6 +315,15 @@
       word-break:break-word;
     }
     .footer-contact-value.phone { font-weight:700; color:var(--accent); font-size:16px; }
+    /* --------------  клик‑по‑телефону в подвале -------------- */
+    .footer-contact-item a.footer-contact-value.phone {
+      color:var(--accent);
+      text-decoration:none;          /* без подчеркивания */
+      cursor:pointer;                /* явно показывает кликабельность */
+    }
+    .footer-contact-item a.footer-contact-value.phone:hover {
+      text-decoration:underline;    /* небольшое визуальное подтверждение */
+    }
     .footer-contact-value a:hover { color:var(--accent); border-bottom-color:var(--accent); }
 
     .footer-bottom {
@@ -370,7 +379,7 @@
     }
 
     @media (max-width:520px){
-      .services { grid-template-columns:1fr; }
+      .services { grid-template-columns:1px; }
       .footer-bottom { flex-direction:column; align-items:center; }
 
       .lead { margin-bottom:16px; }
@@ -747,7 +756,7 @@
           <input type="tel" name="phone"
                  placeholder="Пример: +7 (999) 123‑45‑67 или 89991234567"
                  required>
-          <!-- Блок вывода ошибки сразу под полем телефона -->
+          <!-- Под полем телефона выводим ошибку -->
           <div class="error phone-error"></div>
 
           <input type="text" name="source" placeholder="Город" required>
@@ -775,7 +784,9 @@
         </div>
         <div class="footer-contact-item">
           <span class="footer-contact-label">Телефон:</span>
-          <span class="footer-contact-value phone">+7 (999) 836‑54‑90</span>
+          <!-- Кликабельный телефон -->
+          <a href="tel:+79998365490"
+             class="footer-contact-value phone">+7 (999) 836‑54‑90</a>
         </div>
         <div class="footer-contact-item">
           <span class="footer-contact-label">Email:</span>
@@ -877,18 +888,18 @@ if (burger && menu && overlay) {
 
   if (!track || !prevBtn || !nextBtn || !dots || !container) return;
 
-  const originalHTML = track.innerHTML;          // сохраняем «чистый» набор
+  const originalHTML = track.innerHTML;
   let realItemsCount = 0;
   let realGroups = 0;
   let totalGroups = 0;
-  let idx = 1;                                   // первая реальная группа
+  let idx = 1;
   let dragging = false;
   let startX = 0, startPos = 0;
   let velocity = 0, lastX = 0, lastTime = 0;
   let curPos = 0;
 
   const visibleCount = () => {
-    if (window.innerWidth <= 520) return 1;      // мобильный режим – один слайд
+    if (window.innerWidth <= 520) return 1;
     if (window.innerWidth <= 900)  return 2;
     return 3;
   };
@@ -911,14 +922,14 @@ if (burger && menu && overlay) {
     const realItems = Array.from(track.children);
     realItemsCount = realItems.length;
     realGroups = Math.ceil(realItemsCount / visible);
-    totalGroups = realGroups + 2;               // клоны слева и справа
+    totalGroups = realGroups + 2;
 
-    // ----- левый клон -----
+    // left clones
     for (let i = realItemsCount - visible; i < realItemsCount; i++) {
       const clone = realItems[i].cloneNode(true);
       track.insertBefore(clone, track.firstChild);
     }
-    // ----- правый клон -----
+    // right clones
     for (let i = 0; i < visible; i++) {
       const clone = realItems[i].cloneNode(true);
       track.appendChild(clone);
@@ -995,8 +1006,8 @@ if (burger && menu && overlay) {
     const sw = slideWidth();
     const inertia = velocity * 200;
     const projected = curPos + inertia;
+    let newIdx = Math.round(projected / sw) + 1;
 
-    let newIdx = Math.round(projected / sw) + 1; // +1 – корректировка на клоны
     if (newIdx <= 0) newIdx = totalGroups - 2;
     if (newIdx >= totalGroups - 1) newIdx = 1;
 
@@ -1005,14 +1016,14 @@ if (burger && menu && overlay) {
   };
 
   track.addEventListener('transitionend', () => {
-    if (idx === totalGroups - 1) { // правый клон
+    if (idx === totalGroups - 1) {
       idx = 1;
       track.style.transition = 'none';
       update(false);
       void track.offsetWidth;
       track.style.transition = '';
     }
-    if (idx === 0) { // левый клон
+    if (idx === 0) {
       idx = totalGroups - 2;
       track.style.transition = 'none';
       update(false);
@@ -1087,16 +1098,17 @@ form.addEventListener('submit', e => {
     return;
   }
 
-  // «мягкое» регулярное выражение
+  // «мягкое» регулярное выражение, принимает:
+  // +7 (999) 123‑45‑67   |   +7 999 123 45 67   |   8 (999)1234567   |   89991234567
   const phonePattern = /^(?:\+7|8)?\s*\(?\d{3}\)?\s*\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
   if (!phonePattern.test(phone)) {
     if (phoneErrorEl) {
-      phoneErrorEl.textContent = 'Введите телефон в формате +7 (999) 123‑45‑67 или 89991234567';
+      phoneErrorEl.textContent = 'Введите телефон в формате +7 (999) 123‑45‑67';
     }
     return;
   }
 
-  // отправляем именно то, что ввёл пользователь
+  // отправляем именно то, что пользователь ввёл (без нормализации)
   const params = new URLSearchParams({
     name,
     phone,
