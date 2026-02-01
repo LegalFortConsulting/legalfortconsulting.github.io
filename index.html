@@ -120,6 +120,14 @@
     /* Универсальная карточка */
     .card { background:var(--card); padding:20px; border-radius:14px; border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,.04); }
 
+    /* Карточки внутри карусели – без отступов и фона, чтобы не было «белых» полей */
+    .carousel-item .card {
+      background:transparent;
+      padding:0;
+      border:none;
+      box-shadow:none;
+    }
+
     /* Правый блок hero (контактная карточка) – на мобильных 100 % ширины */
     .hero aside {
       flex:0 0 auto;
@@ -163,7 +171,7 @@
     .review-rating { color:#c2a14d; font-size:18px; }
 
     /* -------------------------------------------------
-       КАРУСЕЛЬ (дипломы) – бесконечный
+       КАРУСЕЛЬ (дипломы) – бесконечный, без подпсей
        ------------------------------------------------- */
     .carousel-container {
       position:relative;
@@ -178,14 +186,14 @@
 
     .carousel-track {
       display:flex;
-      /* gap будет вычислен в скрипте, чтобы корректно работать с клоунами */
+      gap:18px;                           /* будет сброшен в мобильных медиа‑запросах */
       transition:transform .3s cubic-bezier(.25,.46,.45,.94);
       will-change:transform;
     }
     .carousel-track.dragging { transition:none; cursor:grabbing; }
 
     .carousel-item {
-      flex-shrink:0;
+      flex-shrink:0;                      /* ширина будет рассчитываться скриптом */
     }
     .carousel-item img {
       width:100%;
@@ -237,8 +245,10 @@
       .carousel-item img { max-height:400px; }
     }
     @media (max-width:520px) {
+      .carousel-item { min-width:100%; }
       .carousel-item img { max-height:300px; }      /* чуть выше, чтобы выглядело красиво */
       .carousel-controls { display:none; }          /* точки не нужны, показывается один слайд */
+      .carousel-track { gap:0; }                     /* убираем промежутки – исчезают пустые белые области */
     }
 
     /* -------------------------------------------------
@@ -301,7 +311,7 @@
     @media (max-width:900px) {
       .hero { grid-template-columns:1fr; gap:24px; }
       .services { grid-template-columns:repeat(2,1fr); }
-      .cols { grid-template-columns:1fr; }
+      .cols { grid-template-columns:1f; }
       .burger { display:block; }
       nav.menu{
         display:none;
@@ -618,7 +628,7 @@
         <div class="carousel-item"><div class="card"><img src="assets/diplom4.jpg" alt="Диплом 4"></div></div>
         <div class="carousel-item"><div class="card"><img src="assets/diplom5.jpg" alt="Диплом 5"></div></div>
         <div class="carousel-item"><div class="card"><img src="assets/diplom6.jpg" alt="Диплом 6"></div></div>
-        <div class="carousel-item"><div class="card"><img src="assets/diplom7.jpg" alt="Диплол 7"></div></div>
+        <div class="carousel-item"><div class="card"><img src="assets/diplom7.jpg" alt="Диплом 7"></div></div>
         <div class="carousel-item"><div class="card"><img src="assets/diplom8.jpg" alt="Диплом 8"></div></div>
         <div class="carousel-item"><div class="card"><img src="assets/diplom9.jpg" alt="Диплом 9"></div></div>
         <div class="carousel-item"><div class="card"><img src="assets/diplom10.jpg" alt="Диплом 10"></div></div>
@@ -812,12 +822,12 @@ if (burger && menu && overlay) {
 
   if (!track || !prevBtn || !nextBtn || !dots || !container) return;
 
-  const originalHTML = track.innerHTML;          // запомним «чистый» набор элементов
+  const originalHTML = track.innerHTML;          // сохраняем «чистый» набор элементов
   let realItemsCount = 0;                        // количество реальных карточек
   let realGroups = 0;                           // количество групп (слайда) без клонов
-  let totalGroups = 0;                           // groups + клоны (плюс 2)
+  let totalGroups = 0;                          // groups + клоны (плюс 2)
   let idx = 1;                                   // текущий «групповой» индекс (1 = первая реальная группа)
-  let direction = 0;                             // -1 = назад, 1 = вперёд, 0 = без движения
+  let direction = 0;                            // -1 = назад, 1 = вперёд, 0 = без движения
 
   /* ---------- вспомогательные функции ---------- */
   const visibleCount = () => {
@@ -842,7 +852,7 @@ if (burger && menu && overlay) {
 
   const translateFor = (groupIdx) => groupIdx * slideWidth();
 
-  /* ---------- построение клоунов ---------- */
+  /* ---------- построение клонов ---------- */
   const buildCarousel = () => {
     // возвращаем «чистый» набор
     track.innerHTML = originalHTML;
@@ -851,20 +861,20 @@ if (burger && menu && overlay) {
     const realItems = Array.from(track.children);
     realItemsCount = realItems.length;
     realGroups   = Math.ceil(realItemsCount / visible);
-    totalGroups  = realGroups + 2;   // +2 — по одному «клоун‑группу» слева и справа
+    totalGroups  = realGroups + 2; // +2 – левый и правый клоны
 
-    // ----- prepend (левый клоун) -----
+    // ----- prepend (левый клон) -----
     for (let i = realItemsCount - visible; i < realItemsCount; i++) {
       const clone = realItems[i].cloneNode(true);
       track.insertBefore(clone, track.firstChild);
     }
-    // ----- append (правый клоун) -----
+    // ----- append (правый клон) -----
     for (let i = 0; i < visible; i++) {
       const clone = realItems[i].cloneNode(true);
       track.appendChild(clone);
     }
 
-    // начальная позиция – первая реальная группа
+    // стартовая позиция – первая реальная группа
     idx = 1;
     direction = 0;
     renderDots();
@@ -886,7 +896,9 @@ if (burger && menu && overlay) {
   /* ---------- обновление визуала ---------- */
   const update = (smooth = true) => {
     track.style.transition = smooth ? 'transform .3s cubic-bezier(.25,.46,.45,.94)' : 'none';
-    track.style.transform = `translateX(-${translateFor(idx)}px)`;
+    const maxTranslate = track.scrollWidth - track.parentElement.offsetWidth;
+    const tr = Math.min(translateFor(idx), maxTranslate);
+    track.style.transform = `translateX(-${tr}px)`;
 
     // активная точка
     const dotEls = dots.querySelectorAll('.carousel-dot');
@@ -896,7 +908,7 @@ if (burger && menu && overlay) {
   /* ---------- переходы ---------- */
   const goTo = (dotIdx) => {
     direction = dotIdx + 1 > idx ? 1 : (dotIdx + 1 < idx ? -1 : 0);
-    idx = dotIdx + 1;            // +1 – смещение из‑за левого клоуна
+    idx = dotIdx + 1;            // +1 – смещение из‑за левого клона
     update(true);
   };
   const next = () => {
@@ -948,7 +960,6 @@ if (burger && menu && overlay) {
     const diff = curX - startX;
     curPos = startPos - diff;
 
-    // ограничиваем скольжующее поле, иначе будет пустое место
     const maxTranslate = track.scrollWidth - track.parentElement.offsetWidth;
     curPos = Math.max(0, Math.min(curPos, maxTranslate));
 
@@ -975,22 +986,22 @@ if (burger && menu && overlay) {
 
     const sw = slideWidth();
     const threshold = sw * 0.3;               // когда переключать слайд
-    const inertia = velocity * 200;          // небольшая «инерция»
+    const inertia = velocity * 200;           // небольшая «инерция»
     const projected = curPos + inertia;
 
     let newIdx = Math.round(projected / sw);
-    // делаем «кольцевой» переход
-    if (newIdx <= 0)      newIdx = totalGroups - 2;   // последний реальный
-    if (newIdx >= totalGroups - 1) newIdx = 1;       // первый реальный
+    // кольцевой переход
+    if (newIdx <= 0)          newIdx = totalGroups - 2;   // последний реальный
+    if (newIdx >= totalGroups - 1) newIdx = 1;           // первый реальный
 
     direction = newIdx > idx ? 1 : -1;
     idx = newIdx;
     update(true);
   };
 
-  /* ---------- завершение анимации (переход к реальному слайду) ---------- */
+  /* ---------- завершение анимации (переключение к реальному слайду) ---------- */
   track.addEventListener('transitionend', () => {
-    // если попали на клоун‑группу справа
+    // если попали на клон‑группу справа
     if (idx === totalGroups - 1) {
       idx = 1;                         // первый реальный
       track.style.transition = 'none';
@@ -998,7 +1009,7 @@ if (burger && menu && overlay) {
       void track.offsetWidth;          // принудительный reflow
       track.style.transition = '';
     }
-    // если попали на клоун‑группу слева
+    // если попали на клон‑группу слева
     if (idx === 0) {
       idx = totalGroups - 2;           // последний реальный
       track.style.transition = 'none';
