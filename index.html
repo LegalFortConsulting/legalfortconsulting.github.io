@@ -1145,23 +1145,24 @@ const consentCancel = document.getElementById('consentCancel');
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('form-status');
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxYDM-EPa7pT3Vf2uCQDvKgfL2BSQBOu4b3OW8oNJxm_CESK-LemazzIXq0EfqHyL5rFw/exec';
+const API_URL = 'https://script.google.com/macros/s/ВАШ_URL/exec';
 let formPayload = null;
 
 // ---------------- Модалка ----------------
-const closeConsentModal = () => {
-  consentModal.style.display = 'none';
-  consentCheckbox.checked = false;
-  formPayload = null;
-};
-
 const openConsentModal = (payload) => {
   formPayload = payload;
-  consentCheckbox.checked = false;
+  consentCheckbox.checked = false; // сброс перед показом
   consentModal.style.display = 'flex';
 };
 
+const closeConsentModal = () => {
+  consentModal.style.display = 'none';
+};
+
+// Закрытие по кнопке "Отмена"
 consentCancel.addEventListener('click', closeConsentModal);
+
+// Закрытие по клику вне модалки
 consentModal.addEventListener('click', e => {
   if(e.target === consentModal) closeConsentModal();
 });
@@ -1181,13 +1182,14 @@ contactForm.addEventListener('submit', function(e) {
     return;
   }
 
-  // Подготовка данных для Google Apps Script
   const params = new URLSearchParams({ name, phone, source, message: message || '' });
   openConsentModal(params);
 });
 
 // ---------------- Подтверждение согласия ----------------
-consentAccept.addEventListener('click', function() {
+consentAccept.addEventListener('click', function(e) {
+  e.stopPropagation(); // предотвращаем всплытие на модалку
+
   if(!formPayload){
     alert('Сначала заполните форму и откройте модалку согласия.');
     return;
@@ -1201,7 +1203,7 @@ consentAccept.addEventListener('click', function() {
   formStatus.innerText = 'Отправка...';
   formStatus.style.color = 'var(--muted)';
   consentAccept.disabled = true;
-  closeConsentModal();
+  closeConsentModal(); // ✅ закрываем модалку после проверки
 
   fetch(API_URL, {
     method: 'POST',
@@ -1214,7 +1216,7 @@ consentAccept.addEventListener('click', function() {
     formStatus.innerText = 'Заявка успешно отправлена!';
     formStatus.style.color = 'green';
     contactForm.reset();
-    formPayload = null; // сброс после успешной отправки
+    formPayload = null;
   })
   .catch(err => {
     console.error(err);
@@ -1223,54 +1225,6 @@ consentAccept.addEventListener('click', function() {
   })
   .finally(() => consentAccept.disabled = false);
 });
-
-
-
-
-  /* ======================
-     Подтверждение согласия
-  ====================== */
-
-  consentAccept.addEventListener('click', function () {
-    if (!consentCheckbox.checked) {
-      alert('Пожалуйста, подтвердите согласие на обработку персональных данных');
-      return;
-    }
-
-    if (!formDataToSubmit || !formElement) {
-      closeConsentModal();
-      return;
-    }
-
-    if (formStatus) {
-      formStatus.innerText = 'Отправка...';
-      formStatus.style.color = 'var(--muted)';
-    }
-
-    consentAccept.disabled = true;
-    closeConsentModal();
-
-    fetch(API_URL, {
-      method: 'POST',
-      body: formDataToSubmit,
-    })
-      .then(() => {
-        if (formStatus) {
-          formStatus.innerText = 'Заявка успешно отправлена!';
-          formStatus.style.color = 'green';
-        }
-        formElement.reset();
-      })
-      .catch(() => {
-        if (formStatus) {
-          formStatus.innerText = 'Ошибка отправки, попробуйте позже.';
-          formStatus.style.color = 'red';
-        }
-      })
-      .finally(() => {
-        consentAccept.disabled = false;
-      });
-  });
 
 
 
