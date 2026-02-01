@@ -1144,7 +1144,7 @@ const consentCancel = document.getElementById('consentCancel');
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('form-status');
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxYDM-EPa7pT3Vf2uCQDvKgfL2BSQBOu4b3OW8oNJxm_CESK-LemazzIXq0EfqHyL5rFw/exec';
+const API_URL = 'https://script.google.com/macros/s/ВАШ_URL/exec';
 let formPayload = null;
 
 // ---------------- Модалка ----------------
@@ -1161,7 +1161,9 @@ const openConsentModal = (payload) => {
 };
 
 consentCancel.addEventListener('click', closeConsentModal);
-consentModal.addEventListener('click', e => { if(e.target === consentModal) closeConsentModal(); });
+consentModal.addEventListener('click', e => {
+  if(e.target === consentModal) closeConsentModal();
+});
 
 // ---------------- Отправка формы ----------------
 contactForm.addEventListener('submit', function(e) {
@@ -1178,20 +1180,23 @@ contactForm.addEventListener('submit', function(e) {
     return;
   }
 
-  // Данные для отправки
-  const params = new URLSearchParams({ name, phone, source, message: message || '' });
+  // Подготовка данных для Google Apps Script
+  const params = new URLSearchParams({
+    name, phone, source, message: message || ''
+  });
+
   openConsentModal(params);
 });
 
 // ---------------- Подтверждение согласия ----------------
 consentAccept.addEventListener('click', function() {
-  if(!consentCheckbox.checked){
-    alert('Подтвердите согласие на обработку персональных данных');
+  if(!formPayload){
+    alert('Сначала заполните форму.');
     return;
   }
 
-  if(!formPayload){
-    closeConsentModal();
+  if(!consentCheckbox.checked){
+    alert('Пожалуйста, подтвердите согласие на обработку персональных данных');
     return;
   }
 
@@ -1207,10 +1212,11 @@ consentAccept.addEventListener('click', function() {
   })
   .then(res => res.json())
   .then(data => {
-    if(data.status !== 'ok') throw new Error(data.message);
+    if(data.status !== 'ok') throw new Error(data.message || 'Неизвестная ошибка');
     formStatus.innerText = 'Заявка успешно отправлена!';
     formStatus.style.color = 'green';
     contactForm.reset();
+    formPayload = null; // сброс после успешной отправки
   })
   .catch(err => {
     console.error(err);
@@ -1219,6 +1225,7 @@ consentAccept.addEventListener('click', function() {
   })
   .finally(() => consentAccept.disabled = false);
 });
+
 
 
   /* ======================
