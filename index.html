@@ -1177,6 +1177,7 @@ consentAccept.addEventListener('click', async () => {
   closeModal();
 
   try {
+    console.log('Отправляем POST →', API_URL, payload.toString());
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
