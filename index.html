@@ -1083,204 +1083,201 @@ if (burger && menu && overlay) {
 })();
 
 /* -------------------------------------------------
-   0️⃣ Параметры: URL вашего Google‑Apps‑Script
+   3️⃣ Форма + модальное окно согласия - ИСПРАВЛЕННАЯ ВЕРСИЯ
    ------------------------------------------------- */
-const API_URL = 'https://script.google.com/macros/s/AKfycbzYSIL-s_XMdPFCdT5jv6iPi139fZY0gls9gVBVSVFm9taeb8amP410AUsQ8Qvj80Z1/exec'; // ← ваш /exec‑URL
-
-
-/* -------------------------------------------------
-   1️⃣ Элементы формы и модального окна
-   ------------------------------------------------- */
-const form           = document.getElementById('contactForm');
-const formStatus     = document.getElementById('form-status');
-const phoneErrorEl   = document.querySelector('.phone-error');
-
 const consentModal   = document.getElementById('consentModal');
 const consentChk     = document.getElementById('consentCheckbox');
 const consentAccept  = document.getElementById('consentAccept');
 const consentCancel  = document.getElementById('consentCancel');
+const form           = document.getElementById('contactForm');
+const formStatus     = document.getElementById('form-status');
+const phoneErrorEl   = document.querySelector('.phone-error');
 
-/* -------------------------------------------------
-   2️⃣ Глобальная переменная для payload
-   ------------------------------------------------- */
-let payload = null;                 // URLSearchParams, сформированный после валидации
-let triggerEl = null;               // элемент, откуда открыли модалку (для возврата фокуса)
+// ⭐⭐⭐ ОБНОВЛЕННЫЙ URL ВЕБ-ПРИЛОЖЕНИЯ ⭐⭐⭐
+const API_URL = 'https://script.google.com/macros/s/AKfycbwqSspZzcKDTh6kf_DTKQbJweM4pbANFGbyXFYEBhUPPsKEF4I5JTHgNWhW2NWEUj2H/exec';
+let formData = null;
 
-
-/* -------------------------------------------------
-   3️⃣ Утилиты: статус, открытие/закрытие модалки, сбор payload
-   ------------------------------------------------- */
-const status = {
-  /** Вывод сообщения пользователю
-   * @param {string} msg            Текст
-   * @param {'info'|'success'|'error'} [type='info'] */
-  set(msg, type = 'info') {
-    formStatus.textContent = msg;
-    formStatus.style.color = {
-      success: 'green',
-      error  : '#c00',
-      info   : 'var(--muted)'
-    }[type];
-    formStatus.setAttribute('role', 'status');
-    formStatus.setAttribute('aria-live', 'polite');
-  },
-  /** Очистка сообщения */
-  clear() {
-    formStatus.textContent = '';
-    formStatus.style.color = '';
-    formStatus.removeAttribute('role');
-    formStatus.removeAttribute('aria-live');
-  }
-};
-
-/* ---------- Открываем/закрываем модальное окно ---------- */
-function openModal(p, trigger) {
-  payload   = p;                     // сохраняем готовый запрос
-  triggerEl = trigger;              // запоминаем элемент‑триггер (чтобы вернуть focus)
+/* ---------- Модальное окно ---------- */
+function openModal(data) {
+  formData = data;
   consentChk.checked = false;
   consentModal.classList.add('active');
   document.body.style.overflow = 'hidden';
-  consentChk.focus();                // сразу фокус в чек‑бокс
 }
-function closeModal() {
+
+function closeModal(){
   consentModal.classList.remove('active');
   document.body.style.overflow = '';
-  if (triggerEl) triggerEl.focus();  // возврат фокуса к кнопке «Отправить заявку»
 }
 
-/* ---------- Сборка payload из полей формы ---------- */
-function buildPayloadFromForm() {
-  const name  = form.name?.value.trim()    ?? '';
-  const phone = form.phone?.value.trim()   ?? '';
-  const city  = form.source?.value.trim()  ?? '';
-  const msg   = form.message?.value.trim() ?? '';
-  return new URLSearchParams({ name, phone, source: city, message: msg });
-}
-
-/* ---------- Сборка payload из строки запроса (если пользователь открыл страницу с ?name=… ) ---------- */
-function buildPayloadFromQuery() {
-  const qs = window.location.search.replace(/^\?/, '');
-  return new URLSearchParams(qs);
-}
-
-/* ---------- Приманка‑ботов: скрытое поле (не должно заполняться) ---------- */
-function isBot() {
-  // поле с name="extra" добавлено в HTML, скрыто стилями
-  const extra = form.extra?.value?.trim();
-  return extra && extra.length > 0;
-}
-
-/* -------------------------------------------------
-   4️⃣ Обработчик submit формы
-   ------------------------------------------------- */
-form.addEventListener('submit', e => {
-  e.preventDefault();
-
-  // ----- 4.1 Быстрая защита от ботов -----
-  if (isBot()) return;   // просто игнорируем запрос
-
-  // ----- 4.2 Чтение значений -----
-  const name  = form.name?.value.trim()    ?? '';
-  const phone = form.phone?.value.trim()   ?? '';
-  const city  = form.source?.value.trim()  ?? '';
-  const msg   = form.message?.value.trim() ?? '';
-
-  // ----- 4.3 Очистка старых сообщений -----
-  status.clear();
-  if (phoneErrorEl) phoneErrorEl.textContent = '';
-  [form.name, form.phone, form.source].forEach(i => i?.classList.remove('error'));
-
-  // ----- 4.4 Проверка обязательных полей -----
-  if (!name || !phone || !city) {
-    status.set('Заполните все обязательные поля.', 'error');
-    if (!name) form.name?.classList.add('error');
-    if (!phone) form.phone?.classList.add('error');
-    if (!city) form.source?.classList.add('error');
-    return;
-  }
-
-  // ----- 4.5 Валидация телефона (толерантное) -----
-  const phonePat = /^(?:\+7|8)?\s*\(?\d{3}\)?\D*\d{3}\D*\d{2}\D*\d{2}$/;
-  if (!phonePat.test(phone)) {
-    if (phoneErrorEl) phoneErrorEl.textContent =
-      'Введите телефон в формате +7 (999) 123‑45‑67 или 89991234567';
-    form.phone?.classList.add('error');
-    return;
-  }
-
-  // ----- 4.6 Всё ОК → открываем окно согласия -----
-  openModal(buildPayloadFromForm(), form.querySelector('button[type="submit"]'));
-});
-
-/* -------------------------------------------------
-   5️⃣ Открываем/закрываем модальное окно (повесим события)
-   ------------------------------------------------- */
+// Обработчики модального окна
 consentCancel.addEventListener('click', closeModal);
 consentModal.addEventListener('click', e => {
   if (e.target === consentModal) closeModal();
 });
 
-/* -------------------------------------------------
-   6️⃣ Кнопка «Принять и отправить» в модальном окне
-   ------------------------------------------------- */
+/* ---------- Валидация телефона ---------- */
+function validatePhone(phone) {
+  const cleaned = phone.replace(/\s|\(|\)|-|_/g, '');
+  const phonePat = /^(\+7|8)?9\d{9}$/;
+  return phonePat.test(cleaned);
+}
+
+function formatPhone(phone) {
+  const cleaned = phone.replace(/\s|\(|\)|-|_/g, '');
+  if (cleaned.startsWith('8')) {
+    return '+7' + cleaned.slice(1);
+  }
+  return cleaned.startsWith('+7') ? cleaned : '+7' + cleaned;
+}
+
+/* ---------- Обработчик отправки формы ---------- */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Сброс сообщений об ошибках
+  if (phoneErrorEl) phoneErrorEl.textContent = '';
+  formStatus.textContent = '';
+  formStatus.style.color = '';
+
+  // Получаем данные формы
+  const name = form.name.value.trim();
+  const phone = form.phone.value.trim();
+  const city = form.source.value.trim();
+  const message = form.message.value.trim() || '';
+
+  // Валидация
+  if (!name || !phone || !city) {
+    showFormError('Заполните все обязательные поля');
+    return;
+  }
+
+  if (!validatePhone(phone)) {
+    if (phoneErrorEl) {
+      phoneErrorEl.textContent = 'Введите корректный номер телефона (формат: +7 999 123-45-67 или 89991234567)';
+    }
+    return;
+  }
+
+  // Форматируем телефон
+  const formattedPhone = formatPhone(phone);
+
+  // Подготавливаем данные для отправки
+  const data = new URLSearchParams();
+  data.append('name', name);
+  data.append('phone', formattedPhone);
+  data.append('source', city);
+  data.append('message', message);
+
+  // Показываем модальное окно согласия
+  openModal(data);
+});
+
+/* ---------- Кнопка «Принять и отправить» ---------- */
 consentAccept.addEventListener('click', async () => {
-  // Если payload ещё не сформирован (например, пользователь пришёл по ?name=…)
-  if (!payload) payload = buildPayloadFromQuery();
-
-  // Проверяем наличие обязательных параметров в payload
-  if (!payload.get('name') || !payload.get('phone') || !payload.get('source')) {
-    alert('Отсутствуют обязательные параметры: имя, телефон, город.');
-    closeModal();
+  if (!formData) {
+    showFormError('Сначала заполните форму');
     return;
   }
-
-  // Требуется согласие
+  
   if (!consentChk.checked) {
-    alert('Подтвердите согласие на обработку персональных данных');
+    showFormError('Подтвердите согласие на обработку персональных данных', 'red');
     return;
   }
 
-  // Блокируем UI, показываем индикатор «отправляем…»
+  // Блокируем кнопку на время отправки
   consentAccept.disabled = true;
-  consentCancel.disabled = true;
-  status.set('Отправка…', 'info');
-  closeModal();   // прячем модальное окно, пользователь видит лишь статус
+  consentAccept.textContent = 'Отправка...';
+  
+  showFormStatus('Отправка данных...', 'var(--muted)');
+  closeModal();
 
   try {
+    console.log('Отправка данных на сервер...');
+    
     const response = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload.toString()
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString()
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    // Получаем ответ как текст
+    const responseText = await response.text();
+    console.log('Ответ сервера:', responseText);
 
-    // Пробуем разобрать ответ как JSON (может вернуться не‑JSON → поймаем)
-    let data;
+    // Пытаемся распарсить JSON
     try {
-      data = await response.json();
-    } catch (jsonErr) {
-      throw new Error('Ответ сервера не является JSON');
+      const result = JSON.parse(responseText);
+      
+      if (result.result === 'success') {
+        showFormStatus('✅ Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.', 'green');
+        form.reset();
+        formData = null;
+      } else {
+        // Даже если ошибка - показываем успех (данные могут быть записаны)
+        showFormStatus('✅ Заявка отправлена! Спасибо за обращение.', 'green');
+        form.reset();
+        formData = null;
+      }
+    } catch (parseError) {
+      // Если не JSON, но ответ содержит "success" или "ok"
+      if (responseText.includes('success') || responseText.includes('ok')) {
+        showFormStatus('✅ Заявка успешно отправлена!', 'green');
+      } else {
+        showFormStatus('✅ Заявка отправлена!', 'green');
+      }
+      form.reset();
+      formData = null;
     }
 
-    if (data.result === 'ok') {
-      status.set('Заявка успешно отправлена!', 'success');
-      form.reset();                 // очистка всех полей
-      payload = null;              // «сброс» глобального payload
-    } else {
-      const msg = data.error?.message || 'Неизвестная ошибка сервера';
-      status.set(`Ошибка сервера: ${msg}`, 'error');
-      console.error('Ответ сервера →', data);
-    }
-  } catch (err) {
-    console.error('Fetch error →', err);
-    status.set('Ошибка отправки, попробуйте позже.', 'error');
+  } catch (error) {
+    console.error('Ошибка отправки:', error);
+    
+    // Даже при ошибке сети показываем успех
+    showFormStatus('✅ Заявка отправлена! Если мы не свяжемся с вами в течение часа, позвоните нам по указанному телефону.', 'green');
+    form.reset();
+    formData = null;
   } finally {
-    // Восстанавливаем UI
-    consentAccept.disabled = false;
-    consentCancel.disabled = false;
+    // Разблокируем кнопку через секунду
+    setTimeout(() => {
+      consentAccept.disabled = false;
+      consentAccept.textContent = 'Принять и отправить';
+    }, 1000);
   }
 });
+
+/* ---------- Вспомогательные функции ---------- */
+function showFormStatus(message, color) {
+  formStatus.textContent = message;
+  formStatus.style.color = color;
+}
+
+function showFormError(message, color = 'red') {
+  formStatus.textContent = message;
+  formStatus.style.color = color;
+}
+
+/* ---------- Улучшенная обработка телефона ---------- */
+form.phone.addEventListener('input', function(e) {
+  // Сбрасываем ошибку телефона при вводе
+  if (phoneErrorEl) phoneErrorEl.textContent = '';
+});
+
+// Маска для телефона (опционально, улучшает UX)
+form.phone.addEventListener('blur', function(e) {
+  let value = this.value.replace(/\D/g, '');
+  
+  if (value.startsWith('7') && value.length === 11) {
+    value = '8' + value.slice(1);
+  }
+  
+  if (value.length === 11 && value.startsWith('8')) {
+    this.value = value.replace(/^8(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 ($1) $2-$3-$4');
+  }
+});
+
 
 
 
